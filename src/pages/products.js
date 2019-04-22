@@ -1,15 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { graphql, Link } from "gatsby";
 import Img from "gatsby-image";
+import netlifyIdentity from "netlify-identity-widget";
 
 import Layout from "../components/layout";
 
 const Products = ({ data: { allContentfulProduct } }) => {
+    const [filteredProducts, setFilteredProducts] = useState([])
+    useEffect(() => {
+        getProducts();
+    }, [])
+
+    const getProducts = () => {
+        const allProducts = allContentfulProduct.edges;
+        setFilteredProducts(netlifyIdentity.currentUser() !== null ? allProducts : allProducts.filter(({ node: product }) => !product.private));
+    }
+
     return (
         <Layout>
             <div>
                 <h2>Products</h2>
-                {allContentfulProduct.edges.map(({ node: product }) => (
+                {filteredProducts.map(({ node: product }) => (
                     <div key={product.id}>
 
                         <Link to={`/products/${product.slug}`} style={{ textDecoration: "none", color: "#551a8b" }}>
@@ -34,6 +45,7 @@ allContentfulProduct {
             slug
             name
             price
+            private
             image {
                 fluid(maxWidth: 800) {
                     ...GatsbyContentfulFluid_tracedSVG
